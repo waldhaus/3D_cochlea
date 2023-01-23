@@ -40,7 +40,7 @@ regression = function(pca_vector,expression_vector){
 #' a data frame containing the LOWESS regressed PC results. The fifth element is a data frame containing the LOWESS 
 #' regressed gene expression results. The fourth and fifth elements have the same format with rows represent genes and 
 #' columns represent cells.
-find_de_genes = function(data, pca_df, groups, thres = 1, kl_thres = 0.3){
+find_de_genes = function(data, pca_df, groups, thres = 1, kl_thres = 0.3, test = c("ttest","wilcox")){
   library(philentropy)
   # Differential analysis using t-tests
   data_group1 = data[which(groups$seurat_cluster == unique(groups$seurat_cluster)[1]),]
@@ -59,7 +59,12 @@ find_de_genes = function(data, pca_df, groups, thres = 1, kl_thres = 0.3){
       print(i)
     }
     # t-test
-    p_list[i] = t.test(data_group1[,i],data_group2[,i], paired = FALSE, var.equal = FALSE)$p.value
+    if(test == "ttest"){
+      p_list[i] = t.test(data_group1[,i],data_group2[,i], paired = FALSE, var.equal = FALSE)$p.value
+    }
+    else if(test == "wilcox"){
+      p_list[i] = wilcox.test(data_group1[,i],data_group2[,i], paired = FALSE)$p.value
+    }
     
     # LOWESS regression
     x = regression(pca_vector = pca_df[,1],expression_vector = data[,i])[[1]]

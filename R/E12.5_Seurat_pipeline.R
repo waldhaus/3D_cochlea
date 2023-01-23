@@ -58,9 +58,9 @@ df_12 = RunUMAP(df_12, dims = 1:12)
 DimPlot(df_12, reduction = "umap") 
 
 # Save the E12.5 Seurat object
-saveRDS(df_12,"~/Dropbox (University of Michigan)/Tonotopy_project/Data/Tonotopy_analysis/E12_WT_seurat.RDS")
+# saveRDS(df_12,"~/Dropbox (University of Michigan)/Tonotopy_project/Data/Tonotopy_analysis_rerun/E12_WT_seurat_rerun.RDS")
 
 # DE analysis
 de_genes = FindAllMarkers(df_12,min.pct = 0.25,logfc.threshold = 0.25,only.pos = T, test.use = "wilcox")
 de_genes = subset(de_genes,de_genes$p_val_adj < 0.05)
-# write.table(de_genes,"~/Dropbox/Tonotopy_project/Data/Tonotopy_analysis/E12_WT_de_genes_all_clusters.txt",sep = "\t",col.names = T,row.names = F, quote = F)
+# write.table(de_genes,"~/Dropbox/Tonotopy_project/Data/Tonotopy_analysis_rerun/E12_WT_de_genes_all_clusters_rerun.txt",sep = "\t",col.names = T,row.names = F, quote = F)

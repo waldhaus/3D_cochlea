@@ -3,24 +3,25 @@ library(CellTrails)
 library(dplyr)
 library(Seurat)
 library(ggplot2)
+library(scran)
 
 # Load the data 
-e12_seurat = readRDS("~/Dropbox/Tonotopy_project/Data/Tonotopy_analysis/E12_WT_seurat.RDS")
-e12_seurat_cochlear = SubsetData(e12_seurat,ident.use=c(0,1,4))
+e12_seurat = readRDS("~/Dropbox/Tonotopy_project/Data/Tonotopy_analysis_rerun/E12_WT_seurat_rerun.RDS")
+e12_seurat_cochlear = subset(e12_seurat,idents=c(0,1,4))
 E12 = GetAssayData(object = e12_seurat_cochlear, slot = 'data')
 
-index = read.csv("~/Dropbox/Tonotopy_project/Data/data/gene_index_no_cell_cycle_with_1_starting.csv",header = FALSE)
-index = index$V1
+index = read.csv("~/Dropbox/Tonotopy_project/Data/data/gene_index_no_cell_cycle_with_1_starting.csv",header = T)
+index = index$X0
 seurat_cluster = e12_seurat_cochlear@active.ident
 
 # Generate SCE object to prepare for celltrails
 E12 = as.matrix(E12)[index,]
 E12 = SingleCellExperiment(assays=list(logcounts = E12))
-isSpike(E12, "ERCC") = 1:80
+# isSpike(E12, "ERCC") = 1:80
 
 # Removes features that are not expressed or that do not sufficiently reach the technological limit of detection
-trajFeatureNames(E12) = filterTrajFeaturesByDL(E12, threshold=2, show_plot=T)
-trajFeatureNames(E12) = filterTrajFeaturesByCOV(E12, threshold=0.5, show_plot=T)
+trajFeatureNames(E12) = filterTrajFeaturesByDL(E12, threshold=2, show_plot=FALSE)
+trajFeatureNames(E12) = filterTrajFeaturesByCOV(E12, threshold=0.5, show_plot=FALSE)
 E12_sub = E12[trajFeatureNames(E12), ]
 
 # Filter using scran
@@ -35,7 +36,8 @@ d = findSpectrum(se$eigenvalues, frac=100)
 latentSpace(E12) = se$components[, d]
 
 # Find states
-cl = findStates(E12, min_size=0.005, min_feat=2, max_pval=1e-4, min_fc=1)
+cl = findStates(E12, min_size=0.01, min_feat=2, max_pval=1e-4, min_fc=1.5)
+
 states(E12) = cl
 plotManifold(E12, color_by="phenoName", name="state")
 
@@ -52,8 +54,15 @@ E12 = selectTrajectory(E12, component=1)
 E12 = fitTrajectory(E12)
 plotTrajectoryFit(E12) 
 
-# write.ygraphml(sce=E12,file='~/Dropbox/Tonotopy_project/Data/Tonotopy_analysis/E12_trajectory3.graphml',color_by='phenoName',name='state',node_label='state')
+write.ygraphml(sce=E12,file='~/Dropbox/Tonotopy_project/Data/Tonotopy_analysis_rerun/E12_trajectory_9states_fc1_5.graphml',color_by='phenoName',name='state',node_label='state')
 
-tl = read.ygraphml("~/Dropbox/Tonotopy_project/Data/Tonotopy_analysis/E12_trajectory3.graphml")
+tl = read.ygraphml("~/Dropbox/Tonotopy_project/Data/Tonotopy_analysis_rerun/E12_trajectory_9states_fc1_5.graphml")
 plot(tl[,1:2], axes=FALSE, xlab="", ylab="", pch=20, cex=.25)
 trajLayout(E12, adjust=TRUE) = tl
+
+# saveRDS(E12,"~/Dropbox/Tonotopy_project/Data/Tonotopy_analysis_rerun/E12_WT_celltrails_9_subclusters_fc1_5_rerun.RDS")
+
+
+
+
+

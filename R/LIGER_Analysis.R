@@ -7,8 +7,8 @@ library(ggplot2)
 library(patchwork)
 
 ## Sec1: Align E12 and E14 datasets only 
-E12_seurat = readRDS("~/Dropbox/Tonotopy_project/Data/Tonotopy_analysis/E12_WT_seurat.RDS")
-E14_seurat = readRDS("~/Dropbox/Tonotopy_project/Data/Tonotopy_analysis/E14_WT_seurat.RDS")
+E12_seurat = readRDS("~/Dropbox/Tonotopy_project/Data/Tonotopy_analysis_rerun/E12_WT_seurat_rerun.RDS")
+E14_seurat = readRDS("~/Dropbox/Tonotopy_project/Data/Tonotopy_analysis_rerun/E14_WT_seurat_rerun.RDS")
 
 E12_seurat@meta.data$seurat_anno3 = E12_seurat@meta.data$seurat_clusters
 E12_seurat@meta.data$seurat_anno3 = factor(E12_seurat@meta.data$seurat_clusters,levels = 0:8,labels = c(

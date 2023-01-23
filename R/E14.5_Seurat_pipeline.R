@@ -50,14 +50,15 @@ DimPlot(df_14, reduction = "pca")
 ElbowPlot(df_14,ndims = 50)
 
 # Identify clusters
-df_14 = FindNeighbors(df_14, dims = 1:15,k.param = 20)
+# df_14 = FindNeighbors(df_14, dims = 1:15,k.param = 20)
+df_14 = FindNeighbors(df_14, dims = 1:30,k.param = 20)
 df_14 = FindClusters(df_14, resolution = 0.5)
 
-df_14 = RunUMAP(df_14, dims = 1:12)
+df_14 = RunUMAP(df_14, dims = 1:12,verbose = F)
 DimPlot(df_14, reduction = "umap")
-saveRDS(df_14,"~/Dropbox/Tonotopy_project/Data/Tonotopy_analysis/E14_WT_seurat.RDS")
+# saveRDS(df_14,"~/Dropbox/Tonotopy_project/Data/Tonotopy_analysis_rerun/E14_WT_seurat_rerun.RDS")
 
 # DE analysis
 de_genes = FindAllMarkers(df_14,min.pct = 0.25,logfc.threshold = 0.25,only.pos = T, test.use = "wilcox")
 de_genes = subset(de_genes,de_genes$p_val_adj < 0.05)
-# write.table(de_genes,"~/Dropbox/Tonotopy_project/Data/Tonotopy_analysis/E14_WT_de_genes_all_clusters.txt",sep = "\t",col.names = T,row.names = F, quote = F)
+# write.table(de_genes,"~/Dropbox/Tonotopy_project/Data/Tonotopy_analysis_rerun/E14_WT_de_genes_all_clusters_rerun.txt",sep = "\t",col.names = T,row.names = F, quote = F)

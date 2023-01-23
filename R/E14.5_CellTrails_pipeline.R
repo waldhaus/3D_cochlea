@@ -5,31 +5,18 @@ library(Seurat)
 library(ggplot2)
 
 # Load the data 
-E14_1 = readRDS("~/Dropbox/Tonotopy_project/Data/Tonotopy_analysis/E14_WT_1_Cochlear_Duct_Roof_seurat.RDS")
-E14_1 = GetAssayData(object = E14_1, slot = 'data')
+e14_seurat = readRDS("~/Dropbox/Tonotopy_project/Data/Tonotopy_analysis_rerun/E14_WT_seurat_rerun.RDS")
+e14_seurat_cochlear = subset(e14_seurat,idents=c(1,2,3))
+E14 = GetAssayData(object = e14_seurat_cochlear, slot = 'data')
 
-E14_2 = readRDS("~/Dropbox/Tonotopy_project/Data/Tonotopy_analysis/E14_WT_2_Cochlear_Duct_Base_seurat.RDS")
-E14_2 = GetAssayData(object = E14_2, slot = 'data')
-
-E14_3 = readRDS("~/Dropbox/Tonotopy_project/Data/Tonotopy_analysis/E14_WT_3_Cochlear_Duct_Apex_seurat.RDS")
-E14_3 = GetAssayData(object = E14_3, slot = 'data')
-
-index = read.csv("~/Dropbox/Tonotopy_project/Data/data/gene_index_no_cell_cycle_with_1_starting.csv",header = FALSE)
-index = index$V1
-E14_1 = as.data.frame(E14_1)
-l4 = rep("Roof",dim(E14_1)[2])
-E14_2 = as.data.frame(E14_2)
-l5 = rep("Base",dim(E14_2)[2])
-E14_3 = as.data.frame(E14_3)
-l6 = rep("Apex",dim(E14_3)[2])
+index = read.csv("~/Dropbox/Tonotopy_project/Data/data/gene_index_no_cell_cycle_with_1_starting.csv",header = T)
+index = index$X0
+seurat_cluster = e14_seurat_cochlear@active.ident
 
 # Generate SCE object to prepare for celltrails
-E14 = as.matrix(cbind(E14_1,E14_2,E14_3))[index,]
+E14 = as.matrix(E14)[index,]
 E14 = SingleCellExperiment(assays=list(logcounts=E14))
 isSpike(E14, "ERCC") = 1:80
-
-cluster = c(l4,l5,l6)
-cluster = as.factor(cluster)
 
 # Removes features that are not expressed or that do not sufficiently reach the technological limit of detection
 trajFeatureNames(E14) = filterTrajFeaturesByDL(E14, threshold=2, show_plot=FALSE)
@@ -40,9 +27,7 @@ E14_sub = E14[trajFeatureNames(E14), ]
 var_fit = scran::trendVar(x=E14_sub, use.spikes=FALSE)
 var_out = scran::decomposeVar(x=E14_sub, fit=var_fit)
 tfeat = featureNames(E14_sub)[which(var_out$FDR < 0.01)]
-
 trajFeatureNames(E14) = tfeat
-showTrajInfo(E14)
 
 # Dimension reduction 
 se = embedSamples(E14)
@@ -50,11 +35,12 @@ d = findSpectrum(se$eigenvalues, frac=100)
 latentSpace(E14) = se$components[, d]
 
 # Find states
-cl <- findStates(E14, min_size=0.005, min_feat=2, max_pval=1e-4, min_fc=1)
+cl = findStates(E14, min_size=0.01, min_feat=2, max_pval=1e-4, min_fc=1.5)
+
 states(E14) = cl
 plotManifold(E14, color_by="phenoName", name="state")
 
-E14$Experiment = cluster
+E14$Experiment = seurat_cluster
 plotManifold(E14, color_by="phenoName", name="Experiment")
 
 # Sample ordering
@@ -67,9 +53,12 @@ E14 = selectTrajectory(E14, component=1)
 E14 = fitTrajectory(E14)
 plotTrajectoryFit(E14) 
 
-# write.ygraphml(sce=E14,file='~/Dropbox/Tonotopy_project/Data/Tonotopy_analysis/trajectory4.graphml',color_by='phenoName',name='state',node_label='state')
+write.ygraphml(sce=E14,file='~/Dropbox/Tonotopy_project/Data/Tonotopy_analysis_rerun/E14_trajectory_11states_fc1_5.graphml',color_by='phenoName',name='state',node_label='state')
 
-tl = read.ygraphml("~/Dropbox/Tonotopy_project/Data/Tonotopy_analysis/trajectory4.graphml")
+tl = read.ygraphml("~/Dropbox/Tonotopy_project/Data/Tonotopy_analysis_rerun/E14_trajectory_11states_fc1_5.graphml")
 plot(tl[,1:2], axes=FALSE, xlab="", ylab="", pch=20, cex=.25)
+trajLayout(E14, adjust=TRUE) = tl
+
+# saveRDS(E14,"~/Dropbox/Tonotopy_project/Data/Tonotopy_analysis_rerun/E14_WT_celltrails_11_subclusters_fc1_5_rerun.RDS")
 
 
